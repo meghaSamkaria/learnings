@@ -1,0 +1,227 @@
+Refer this, once u are done with GIT course, barco's GIT guidelines
+https://wiki.barco.com/display/wovcs/Git+Workflow
+
+ALWAYS CHECK GIT STATUS BEFORE GIT INIT
+
+to add all unstaged and commit in one go : git commit -a -m
+command to open vscode from git bash terminal : code . 
+cmd to configure git bach to open file in vscode : git config --global core.editor "code --wait"
+cmd to show one line git message: git log --oneline
+branching: git branch <branch_name> : to make new branch based on current head. This just creates the branch, it doesnt switch you to that branch.
+use git branch to view your existing branches. Current branch has * marked on it.
+To switch branch, use git switch <branch-name>
+we can do creation and switching of branch using : git switch-c <branch_name>
+for deleting branch , we should not be on that branch
+git branch -d <branch_name> : doesnt let a branch to get deleted before merging
+git branch -D <branch_name> : lets delete a branch without merging 
+git command for RENAMING branch :  git branch -m <new_branch_name> : u have to be on that branch to do so
+
+MERGE:
+switch to the destination branch first, : git switch master
+then merge entire branch to this branch : git merge bugfixBranch
+FOR this to work, master shouldn't have any further changes after the point at which it is being merged.
+
+git diff: shows all unstaged changes in the working directory
+if changes are staged using git add, then these changes would not reflect in git diff.
+
+git diff HEAD : lists all changes in the working directory since last commit( staged and unstaged)
+Do git diff HEAD for a more comprehensive view.
+
+
+git diff --staged or --cached : will list the changes between the staging area and our last commit.
+"Show me what will be included in my commit if run git commit now"
+
+We can see all staged changes or unstaged changes or changes since last commit for a particular filename.
+like git diff  HEAD file1 file2 or
+git diff --stages file1 file2 ...
+git diff branch1 branch2 file1  // comparing across branches
+git diff branch1 .. branch2 : will list the changes between the tips of branch1 and branch2
+git diff HEAD <commitHashNo> // comparing current HEAD with any commit
+git diff HEAD HEAD~1
+
+
+we can compare between gits through their commit hash numbers like : git diff 460879 . . 536289
+
+STASHING : means to save changes without actually committing them
+if we have made some changes to a branch and without committing we are switching branches then 2 scenarios may occur:
+1. our uncommitted changes will follow us to the other branch
+2. it may show an error like uncommitted changes, either commit or stash
+-Running git stash will take all uncommitted changes( staged and unstaged) and stash them, reverting the changes in your working copy.
+-cmd : git stash or git stash save //do the same thing
+-git stash pop : to remove the most recently stashed changes in your stash and re - apply them to your working copy.
+-git stash apply : use this to apply whatever is stashed away, without removing it from the stash. (pop removes it from stash)This can be useful if you want to apply stashed changed to multiple branches.
+-stashing multiple times : you can add multiple stashes onto the stack of stashes. They will all be stashed in the order you added them.
+-git stash list : to list the stashes
+-git stash apply stash@{1} // to apply a particular stash
+-clearing stash : git stash drop stash@{2}    // to clear a particular stash
+-git stash clear    // to completely empty out the entire stash
+
+CHECKOUT :
+-git checkout <commitHashNo>   // results in detached HEAD
+bcz head usually points to tip of branches and not on any commit
+- git switch <branch_name> or git checkout <branch-name>   // reattaches HEAD to the respective branch
+-after detaching HEAD, u can make a new branch at that checkout point and switch to it.
+You can now make and save changes, since HEAD is no longer detached.
+- once again : git switch -c <branch-name> // creation and switching to branch in one cmd
+- git checkout HEAD~1 // means go back 1 commits before current HEAD
+-git checkout HEAD~2 // means go back 2 commits before current HEAD
+-git switch -   // takes to last branch where i was
+- git checkout HEAD <filename> : to discard any changes in that file, reverting back to HEAD.
+To revert the file back to whatever it looked like when you last committed, assuming HEAD currently point to tip of branch
+-another option to do above is by : git checkout -- <filename> //replace HEAD by --
+-***git restore <filename> //restores using HEAD as the default source. This cmd is undoable. If you have uncommitted changes in the file, they will be lost. Its effect is exactly same as above 2 pts.
+-git restore --source <sourceName> <filename> // restores from the source mentioned , for eg:
+-git restore --source HEAD~1  home.html : will restore the contents of home.html to its state from the commit prior to HEAD. You can also use a particular commit hash as the source.
+- git restore --staged <fileName> // if u have accidentally added a file to your staging area with git add and you dont wish to include it in the next commit, you can use git restore to remove it from staging.
+-git reset <commitHashNo> // will reset the repo back to a specific commit. The other commits are gone. Suppose u've just made a couple of commits on the master branch, but u actually meant to make them on a separare branch instead. To undo those commits, u can use git reset. But it keeps the changes in the files, it just deletes the commits.
+-git reset --hard <CommitHashNo> // if u want 2 undo both the commits and the actual changes in your files, you can use the --hard option. For eg:-
+-git reset --hard HEAD~1 // will delete the last commit and associated changes,
+-git revert <commitHashNo> // creates a brand new commit which reverses/undos the changes from a commit. Because it results in a new commit, u will be prompted to enter a commit message.
+
+CLONE
+-before git clone, make sure you're not in a git repository, do "git status" for it.
+-git clone is a gitHub specific cmd. The hosted repo can have any URL
+-git config user.email 
+- to view remotes : git remote -v   
+
+PUSH:
+-git push <remote> <branch>
+Ex: git push origin master  : pushes whatever changes we have on our local master branch to gitHUb
+or Ex git push origin newFeature
+
+Steps to add remote:
+-git status
+-git init
+-touch filename.txt
+-git add filename.txt
+-git commit -m "create filename file"
+-git remote add origin git@github.com:Colt/pushme.git
+-git push origin master   // this will create a master branch at gitHub for us the very first time
+- git push <remote> <local-branch>:<remote-branch>
+Ex : git push origin pancake:waffle // if our local branch name is different from remote branch name on gitHUb
+- git add origin cat : this will create a branch called cat at remote, if not present, then push changes to it
+
+***************gave following output on git bash*********************
+MEGLNU@NOICLT42014 MINGW64 ~/Documents/yesterday-exercise (scrambled-eggs)
+$ git remote -v
+origin  https://github.com/Colt/yesterday-exercise (fetch)
+origin  https://github.com/Colt/yesterday-exercise (push)
+
+***************gave following output on mobaxtreme***************
+meglnu@a321f17ba743:~/iotagent$ git remote
+origin
+
+-git remote add <name> <url> // adding a new remote
+-Eg // git remote add origin https:://github.com/blah/repo.git
+-git remote rename <old> <new>
+-git remote remove <name>
+
+-pushing work to github : git push <remote> <branch>
+-most common eg of above : git push origin master
+-git push -u origin master : Running this sets the upstream of the local master branch so that it tracks the master branch on the origin repo.
+The above cmd just lets us do  : git push // to add to the correct branch at remote
+
+
+GIT  another WORKFLOW
+1.clone->changes locally->PUSH
+2. quite informative page : https://www.atlassian.com/git/tutorials/merging-vs-rebasing
+3.
+
+SQUASHING COMMITS stack overflow:
+git reset --soft HEAD~2    // 2 means LAST 2 commits will be squashed into a new one, before running this, 2 commits should be there
+git commit -m "new commit message"
+git push -f
+
+also by Girish method like this :
+git rebase -i HEAD~2
+ctrl X
+
+Updating master on local with master on remote:
+git fetch
+git rebase origin/master
+
+
+GIT FETCH / PULL
+1. origin is a name that we give to our remote. It could be named anything.
+2. git branch -r  : to view the remote branches our local repository knows about
+3. git remote -v :  gives origin url for fetching and pushing
+4. origin/master is master branch at remote, master is master branch locally
+5. git checkout origin/<branchname> : you can see whats on that remote branch locally , but u're in detached head state
+6. git switch <remote_branch_name> : to switch to another branch on remote in your local, eg :  git switch TokenTrimmingCPPLogic
+Here if correct name of remote branch is used, git automatically sets up locally and tracks from remote the name of our branch.
+7. git checkout --track origin/<branch_name> : old way of doing 6. above
+8. Fetching allows to download changes from a remote repository, BUT those changes will not be automatically integrated into our working files. It lets you see what others have been working on, without having to merge those changes into your local repo. Think of it as "please go and get the latest information from gitHub, but dont screw up my working directory."
+9. git fetch origin //would fetch all the changes from the origin remote repository.
+10.  git fetch  // would bring all branches into your local which were created after you cloned your repo.
+11. git pull <origin> <branch>  // the changes will be merged in whatever branch we are on.
+12. git pulls can result in merge conflict, BEWARE!
+13. As a good practice, before you push anything to github, u must pull to see whether u have any conflicting changes.
+
+
+DELETING a BRANCH locally and on remote :
+git push -d <remote_name> <branchname> //  git push -d origin try_branch
+git branch -d <branchname>   //  git branch -D feature/CS0042-18857_bump_RestAPI_for_FMR_RoomC
+
+
+GITHUB
+-public and private repos : if your account is part of an organization, private repos will be visible to all.
+- U can change private / public settings from danger zone of settings at the end.
+-If you make any repo private from public , u lose collaborators, associated wiki and all other priviledges associated with a public repo.
+- to add collaborators, go to settings ->manage access -> invite a collbaorator -> enter github username or email address
+- the collaborator cannot see settings on a repo, only viewing and push permissions are there.
+- readme.md : md = markdown, language used to generate formatted texts
+-for markdown demo u can checkout - markdown-it.github.io
+-for readme.md preview in vscode, got to command palette and type :    >markdown : OpenPreview.
+-Github gists : they are a simple way to share code snippets and useful fragments with others. Gists are much easier to create, but offer far fewer features than a typical GitHub repo.
+
+
+REBASING :
+-There are 2 main ways to use the git rebase command :
+1. as an alternative to merging
+2. as a cleanup tool.
+- If you use git merge or git pull , u will have several merge commits in your branch.
+- If the master branhc is very active, my feature branch's history is muddied.
+- And if we push such a branch into masters, all these merge commits will be shown there as well.
+- rebase means we are going to re base our feature branch on master branch. This moves the entire feature branch so that it BEGINS at the tip of the master branch.
+- Instead of using a merge commit, rebasing rewrites history by creating new commits for each of the original feature branch commits.
+- Commands : git switch feature
+	: git rebase master
+- Component owners use command : git merge master : this command will lead to a lot of merge commits on master if feature branch was not rebased first.
+
+
+
+
+[09-10 12:24] Chandra Joshi, Girish
+
+git pull origin master --rebase
+
+[09-10 12:24] Chandra Joshi, Girish
+
+command chalao apni branch pe
+
+[09-10 12:25] Chandra Joshi, Girish
+
+and phr changes push karo
+
+[09-10 12:27] Chandra Joshi, Girish
+
+git rebase --continue
+
+[09-10 12:27] Chandra Joshi, Girish
+
+ctrl+o
+
+[09-10 12:27] Chandra Joshi, Girish
+
+ctrl+x
+
+[09-10 12:27] Chandra Joshi, Girish
+
+git push -f
+
+ like 1
+
+
+
+2
+1

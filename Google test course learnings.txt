@@ -1,0 +1,271 @@
+/**************************************Udemy************************************************************************/
+-Unit tests are automated test and regression tests. (white box testing, code available)
+-Unit tests only test 1 unit of code i.e. one test or one function.
+-Unit test can execute independently, Be very careful while using static methods to modify global variables.
+-They have to be very fast.
+-They are isolated entity, dont wait for user inputs.
+-Integration testing : testing of integrated modules ( code modules, individual applications, client-server applications, etc.)
+-System testing : end to end testing, its a black box type of testing, (code is not available), Overall specifications are checked.
+- All these are functional testing.
+
+Unit test structure : Arrange , Act and Assert
+- Unit test for returning number of positive numbers in a vector
+
+-Syntax for unit test: 
+TEST(testforClass, testName)
+{ AAA}
+
+TEST( testPositive, test1)
+{
+	//Arrange
+	std::vector <int> v1{1,2,-2,-4};
+
+	//Act
+	int n=countPositive(v1);
+
+	//Assert
+	ASSERT_EQ(3,n);  //Expected value should be first argument
+}
+
+int main (int argc, char **argv)
+{
+	testing::InitGoogleTest(&argc,argv);
+	return RUN_ALL_TESTS();
+}
+
+
+- Assertion Results : Success 
+		: Failure (Fatal/ Non Fatal)
+-ASSERT_TRUE and ASSERT_FALSE, ASSERT_LT, ASSERT_LE, ASSERT_GT, ASSERT_GE
+-Non Fatal Versions are EXPECT_TRUE / EXPECT_FALSE
+We can see messages written after EXPECT statment in case of failure whereas application terminates after ASSERT and the lines afterwards are not executed.
+-Comparing strings : ASSERT_STREQ / EXPECT_STREQ(str1, str2)
+		:  ASSERT_STRNE / EXPECT_STRNE(str1, str2)
+		:  ASSERT_STRCASEEQ / EXPECT_STRCASEEQ(str1, str2)
+		:  ASSERT_STRCASENE / EXPECT_STRCASENE(str1, str2)
+-In case of std::string instead of c style string, simple ASSERT_EQ would also work.
+
+-Assertions on Exceptions
+Fatal : ASSERT_THROW( statement, exception) // throws exception of an exact type
+Non-Fatal : EXPECT_THROW
+- Similary ASSERT_ANY_THROW and ASSERT_NOTHROW
+
+
+-Summary at section end : 
+	:Unit tests are useful for regresssion testing, meaning that when you make a change, they help prevent the introduction of new bugs.
+	:Unit tests are short, independent and fast.
+	:Unit testing is part of functional testing, i. e. the correctness of the code is checked. Individual functions/methods are usually tested.
+	:A unit test is divided into three parts: Arrange (test setup), Act (call the method), Assert(check the result).
+	:An assertion is where the test condition is checked. They are fatal (ASSERT) or non-fatal(EXPECT).
+	:There are special assertions for strings.
+	:Assertions can be used to check if an exception was thrown, or what type of exception was thrown.
+
+-Test Fixtures prevent you from writing arrange and tearDown again and again in unit tests.
+-They are derived from Test class in testing namespace. (testing :: Test -> TestFixture)
+-Setup , tearDown, setUpTestCase, TearDownTestCases : TEST_F (MytestFixture, testName)
+-u have to create a class for test fixture, Eg: 
+	class AccountTestFixture: public testing::Test {
+	};
+- its SetUp , not Setup. (Capital T)
+ (Whats the difference between Constructor/ Destructor and SetUp/TearDown)
+You can write constructor and destructor for your test fixture class, but there are some limitations with them as follows:
+1. you cannot call virtual methods from constrctor. (if we call virtual method in constrctor, the call is not polymorphic, the base method is always called)
+2. dont call code that throws exception in destructor, that can be done in teardown
+
+Likewise const/destr have following advantages over setUp and teardown methods:
+1. u can initialiaze const members in constructor.
+2. U can subclass, and u might forget to add separate setup and teardown in those cases.
+
+- apart from these, there's SetUpTestCase, TearDownTestCase.
+- for writing setup and teardown and Test fixtures,
+you need to define a testingClass in yor test.cpp file which has structure as below :
+
+class myClassTestFixture : public testing::Test {
+	public:
+	 void SetUp() override ;
+	protected:
+	myClass *mObj;
+};
+
+myClassTestFixture :: SetUp()
+{
+	mObj=new myClass()
+;	//initialize varibles, call constructors or whatever method that puts value in the variable that you want to test
+}
+
+TEST_F(myClassTestFixture , testFirstFunction) {
+	//ASSERT_EQ / EXPECT_EQ  statement only required 
+}
+
+myClassTestFixture :: TearDown()
+{
+	delete mObj;
+}
+
+The testing class for parametrized tests extends the class testing::TestWithParam<Type> // Type was taken as int in the video lecture
+-PARAMETERISED TESTS are used when the test is same but you are changing input only
+-TEST_P : defines test body
+-SetUpTestCase() and TearDownTestCase() must be declared public.
+-INSTANTIATE_TEST_SUITE_P : to generate test from Params
+-Following params can be used:
+1. Range (begin,end,step)
+2. values (x1,x2,...)
+3.ValuesIn (container &iterator)
+4. bool (T/F)
+5. combine (generates cartesian product between 2 or more conditions)
+CARTESIAN PRODUCT : A= a1,a2 B=b1
+a.b = a1b1 + a2b1
+"In the following video, we will write a parameterized test. That means generating multiple test cases but writing the test body just once.
+To generate the tests, you will use the INSTANTIATE_TEST_CASE_P macro, which has been declared deprecated. You will get a warning if you have the latest CMake version installed. Just use the new macro, INSTANTIATE_TEST_SUITE_P.
+After you watch the video, if you want you can have a look at this link  and search for INSTANTIATE_TEST_SUITE_P:
+https://github.com/google/googletest/blob/master/googletest/include/gtest/gtest-param-test.h"
+
+-First comes TestFixture class which extends  testing::TestWithParam<int>
+
+-TEST_P (testclassFixture name, testName) {
+	int param=GetParam();    //This GetParam is standard syntax 
+	param.checkValidation();
+	ASSERT_TRUE()
+ }
+
+-INSTANTIATE_TEST_CASE_P (InRangeTrue, testFixtureClassName, testing::Values(1,2,3,4..))
+
+-If you want to chek for values not in range, simply put, ASSERT_FALSE in TEST_P
+
+-SUMMARY at end of this section
+A fixture is useful for removing code duplication.
+It's used where the setup phase and cleanup phase are similar.
+It's a class where the test setup is written in the SetUp() method and the cleanup is in TearDown().
+A new fixture is created for each test.
+
+Parameterized tests can be used to generate tests that have the same body, but different input values.
+When you generate a test, the expected output values can be packed together with the input values using complex data structures.
+Generators can be used to generate input values for the test.
+
+	 
+-MOCK 
+#include <gmock/gmock.h>
+-format
+class SomeClass
+{	
+	public:
+	SomeClass() =default;
+	virtual void someMethod() {
+		std::cout<<"hello\n";
+	};
+};
+
+class someMockedClass : public SomeClass 
+{
+	public:
+	MOCK_METHOD0(void(),someMethod(),void);
+}
+
+TEST( SampleTest, BasicTest)
+{
+	SomeMockedClass smc;
+	EXPECT_CALL(smc.someMethod).Times(1);
+	smc.someMethod();
+}
+
+-"Notice that IDatabaseConnection is pure virtual and no concrete implementation is done. This is how Test Driven Development (TDD) is done: first you write the tests, then do the actual implementation in your project. However, in TDD, usually the tests fail first, then the implementation is written and then the tests pass.
+This also shows that you don't need concrete implementations to do mocking. But you might actually have concrete impementations."
+
+-Mocking is used to check whether a function was called with the right parameters or not.
+-It involves replacing the real object with a fake one.
+-It helps to test a particular class having dependencies.
+-While doing mocking, we extend a particular class and initiate as mock methods only the methods we want to check,
+-Current way to implement MOCK_METHOD
+int sum(int a, int b)
+MOCK_METHOD(int, SUM, (int,int))
+-For empty parameter list its to be shown with ()
+-qualifiers like const, noexcept, override constitute 4th parameter of this mock_method.
+
+-EXPECT_CALL (testing::_, testing::_)
+testing::_, // refers to parameters used in testing using mock method... no need to specify exact parameter
+-We can also define an ACTION as follows:
+ACTION (myThrow) {
+	std::cout<<"Throwing an error";
+	throw std::runtime_error("Dummy error");
+	}
+
+TEST( TestEmployeeMgr, TestConnectionErrorAction) {
+	MockDatabaseConnection dbConnection(" DummyAddress");
+	EXPECT_CALL (dbConnection, connect()).WillOnce(myThrow());     // or here we can use .WillOnce(testing::Invoke(AnyFreeFunction)) // or we can even use a lambda defined here itself
+// but if we want to use a member function of our mocked class dbConnection here, then we have to first write 
+	// auto boundMethod= std::bind(&MockDatabaseConnection::someMemberMethod, &dbConnection);
+	// next we'll call the above line as follows :
+	EXPECT_CALL (dbConnection, connect()).WillOnce(testing::InvokeWithoutArgs(boundMethod));  // if passing with some params
+// just add this to std:: bind call , auto boundMethod= std::bind(&MockDatabaseConnection::someMemberMethod, &dbConnection, "" );
+	ASSERT_THROW(EmployeeMgr employeeMgr(&dbConnection), std::runtime_error);
+	}
+
+-Examples of Testing with generated output : 
+TEST (testSetOfVectors,  ElementsAreTest) {
+	std::vector<int> v = generateNumbers(5,3);  // this will output 0,1,2,0,1
+
+	ASSERT_THAT(v , testing::ElementsAre( 0,1,2,0,1));
+	
+}
+
+- For mocking private method, just make the method as virtual in actual implemenetation and as public while mocking it.
+- We can also mock static menthods but we need a helper class for it.
+- SUMMARY for MOCKS at end of section :
+Mocks can be used to isolate the test.
+
+Mocked methods have empty implementations.
+
+They can be used to control the behaviour of certain methods, like: returning a certain result, calling another method, throwing exceptions.
+
+Mocks can be used for collaboration tests. That means you can test that method A called method B, with what parameters, and so on
+
+Matchers can be used for matching parameters. Special matchers are "_" (anything) or the exact value ("Exactly").
+
+Other matchers usually found: Gt( greater than), Ge(greater or equal), Lt(lower than), Le(lower or equal).
+
+There are special matchers for strings.
+
+Matchers can be used in assertions on vectors.
+
+	 
+
+
+- Running only a subset of your unit tests 
+- SOmetimes u may define certain unit tests for windows and some for linux, in this case few of UTs will fail, and few will pass.
+-To avoid this u can mention in parameters of unit tests in main(), which one u want to run, or u can specify the same using commandline while executing unit tests.
+#ifdef _WIN32 
+testting::GTEST_FLAG(filter) = "WindowSuite.*"    // in this case WIndowSuite, appears in the name of our test cases
+-From cli : 
+./unitTestRunner --gtest_filter = "UnixSuite.DummyTest1"
+- The command line has priority if u r passing filter both from code and cli.
+
+Utilities :
+1. Also we can see the uni tests running on visual studio, go to settings and install some extensions to do that.
+2. Its also possible to import test results to xml format.
+
+
+ ******************************************************************************************************************************************/
+
+-Mocks are objects pre-programmed with expectations, which form a specification of the calls they are expected to receive.
+-When using gMock,
+	-first, you use some simple macros to describe the interface you want to mock, and they will expand to the implementation of your mock class;
+	-next, you create some mock objects and specify its expectations and behavior using an intuitive syntax;
+	-then you exercise code that uses the mock objects. gMock will catch any violation to the expectations as soon as it arises.
+-We encourage you to use gMock as
+a design tool, for it lets you experiment with your interface design early and often. More iterations lead to better designs!
+a testing tool to cut your tests’ outbound dependencies and probe the interaction between your module and its collaborators.
+
+-instead of having your application talk to the system API directly, wrap the API in an interface (say, Turtle) and code to that interface:
+-(Note that the destructor of Turtle must be virtual, as is the case for all classes you intend to inherit from - otherwise the destructor of the derived class will not be called when you delete an object through a base pointer, and you’ll get corrupted program states like memory leaks.)
+
+
+
+
+
+
+
+
+
+
+
+

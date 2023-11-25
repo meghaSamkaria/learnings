@@ -1,0 +1,207 @@
+Modern C++ learning :
+
+/********************************Smart pointers************************************************************/
+1. unique ptr is not a pointer, its an object of a wrapper class overloading -> and . operators,
+so u cannot call new and delete on it, as its not a pointer!!!
+2. How to pass unique ptr, as it cannot result in invoking copy constructor?, By using std::move(uniquePTR obj) or by passing as a reference
+3. To assign a new value to the unique ptr obj, call :            obj.reset(new pointer);
+
+1. std::shared_ptr has refernce count variable maintained to keep track of its copies, :   ptr.use_count(); //meant to be used only for debugging
+2. shared ptr syntax: std::shared_ptr<int>  p{new int{5});
+if anywhere we assign nullptr to shared_ptr it will decrement the reference count, the same thing will happen at the end of the scope, or if we call reset on it.
+3. Problem with shared ptr, when its passed to a class by value, the ref_count increases, and there's no way to delete the shared_ptr before we reach the end of the scope.
+4. A shared ptr has a control block associated with it, which points to the memory and contains the reference count in it.
+
+1. A weak ptr is initialized with a shared ptr and internally it points to the reference count, // syntax : 
+std::shared_ptr<int>  p{new int{5});
+std::weak<int> wk=p;
+2. Once the reference count becomes 0 for a shared ptr, the weak ptr still continues to refer the control block. The control block is destroyed when the weak ptr is destroyed.
+3. The contol block is deleted only when the weak count becomes 0.
+4. we cannot directly access the underlying ptr through the weak ptr. For that first we have to check whether the shared ptr is still valid or not. For That we first check whether the underlying ptr has expired() equal to true or false.
+5. We apply a lock using weak ptr on the underlying ptr so that even if sharer ptr is destroyed the control block is not released bcz it has a lock applied on it.
+6. The lock method applied on a weak ptr returns a shared ptr which increments the reference count.
+
+Circular reference problem :
+Example of employee and project class was taken. An employee was assigned to a project, and a project was assigned to an employee.
+Shared pointer of both were created and the respective classes also had a public member shared ptr of the other class.
+-Using shared pointer with circular reference, then the underlying memory is not released. This happens because even if the object of the class defined as shared ptr in main is destroyed, the underlying shared ptr of the other class is not destroyed.
+-This problem can be solved by a weak ptr, The other class member object should be declared as weak ptr in any one or both of the classes.
+
+Deleter :
+1. By default, the smart pointer calls delete() method on expriing. What is we have legacy code, that has free or openssl_free, etc for deallocating resources.
+Using direct smart pointer here will cause undefined behaviour.
+2. So we'll convert this code to smart pointer using folllowing syntax :
+std::unique_ptr<int> p {(int*) malloc(sizeof(int))};
+3. We can use a custom deleter like this in this case :
+	struct Free {
+		void operator()(int *p) {                      //here argument should be type pf pointer u want to release.
+		free(p);   
+		}
+4. Now to unique_ptr declaration will be modified as  :
+	std::unique_ptr<int, Free> p {(int*) malloc(sizeof(int)), Free{}};   // first place name of class or struct to be writted, second case, object is to be passed, we passed null object.
+5. Or we could have declared custom deleter as a function, In this case, the first argument becomes the signature of the function like in functionPtr(the (*) indicates that its a function ptr.
+	std::unique_ptr<int, void (*)(int *)> p {(int *) malloc(4), MallocFree} ; // second argument is address of function
+6. For shared ptr, the declaration is a bit simpler as in we do not need to specify the deleter in template argument.
+	std::unique_ptr<int> p {(int*) malloc(sizeof(int)), Free{}};
+	std::unique_ptr<int > p {(int *) malloc(4), MallocFree} ;
+
+-Accessing dynamic array via smart pointere has a bit troublesome syntax.
+	std::unique_ptr<int> p{new int[5] {1,2,3,4,5}};
+	p[0] = 10; //wont work
+p.get()[0] = 10;
+- Also the default deleter in this case will call delete, whereas we need delete[] for deleting arrays.
+-The solution to this problem lies in template specialization for unique_ptr, which results in calling a different class for unique_ptr which has [] operator overloaded to perform desired action.
+	std::unique_ptr<int[]> p{new int[5] {1,2,3,4,5}};
+	p[0] = 10; //works
+-best is to use vector for dynamic arrays, dont use like this.
+
+Make functions:
+-The smart pointers provide global functions through which we can avoid manual memory allocation for resources using new keyword.
+- The syntax is quite simplified with make_unique factory functions :
+	std::unique_ptr<int> p{new int{5}};
+	auto p = std::make_unique<int>(5); 
+This way we dont have to use "new" operator directly in our code, Constructor is automatically invoked. For eg :
+struct Point {
+	Point (int x, int y) {};
+}
+auto p = std::make_unique<Point>(5,6);
+- For array , 
+	auto pArr = std::make_unique<int []> (5); // this 5 signifies size of pArr.
+	pArr[0] = 9;
+-Similar can be done for shared_ptrs using make_shared function C++20 standard onwards, which is slighly complicated implementation wise bcz calls to shared ptr.
+- If we make a shared ptr ourselves, we'll have to use new once for allocating memory to underlying resource, then again new has to be used for allocating memory for control block.
+-Whereas in case of make_shared, all this is accomplished internally using one new call.
+- One disadvantage of using make functions, is that there's no provision to specify custom deleters for this.
+*************************************************************************************************************************/
+
+
+
+
+-If we call double delete on a pointer, then the program will crash if the pointer has not been assigned nullptr after calling first delete.
+This way it wont crash : 
+	int main(
+	{
+    		int *p= new int{5};
+   		 cout<<"\nvalue p is="<<*p<<"\n";
+    		delete p;
+    		p=nullptr;
+   		 delete p;
+
+    		return 0;
+	}
+
+
+
+/************************Lambda functions**************************************************/
+1. The disadvantage of function pointers is that they cannot be inlined for optimization by compiler as they called by address, the compiler doesnt know at compile which function is invoked through that address.
+2. Also they are global and their state cannot be stored in a variable as their intances are shared between many functions.
+-Function pointer invoked through pointer.
+-Function pointer is dynamic in nature, can be invoked at runtime.
+-its slow because of dynamic nature.
+
+- A function object is an object of a class or function that has the function call operator () overloaded. Its advantage over function pointers is that it can be inlined, no explicit function calling overhead is required.
+Also, since its part of a structure or class, it can have a state.
+-Function object invoked through class object.
+-this is static in nature, must be specified at compile time.
+-they are fast.
+
+-Lambda functions
+-syntax :
+	[](<args>)<mutable><excp specification> -> <return type>
+	{
+	}
+- simplest lambda function and invokation : 
+	int main () {
+		[]() {
+		std:cout<<"hello";
+		} ();
+	}
+- lambda function is internally implemented as a function object. (a class with the function call operator overloaded.)
+- another way to invoke above, 
+	int main () {
+		auto fn =[]() {
+		std:cout<<"hello";
+		};
+		fn();
+		cout<<typeid(fn).name();       //this gives output as a class
+	} 
+- example that returns value
+	auto sum=[](int x, int y)-> double {
+		return x+y;
+		};
+	sum(1,2);   // returns 3
+-generic lambda example
+	auto sum=[](auto x, auto y) {
+		return x+y;
+	};
+- inside lambda function's capture list, if you capture a variable by copy, it cannot be modified within the body of lambda.
+This is bcz internally the lambda is implemented as a function call operator of a class which has const specifier, that is it cannot modify the values within its body.
+- in order to modify a captured variable within lambda, u need to use keyword mutable ain lambda.
+- if we are declaring lambda function inside a class and we need to capture all the member variable of that class, then we will use : [this]
+- capture list is used only for local variable, global and static variables are automatically captured.
+-generalized lambda  : this is used when we dont want the variable captured inside lambda to leak outside or if we want to capture a unique ptr in lambda.then we will have to use mutable also.
+	int main() {
+	int x=5;
+	auto fn=[y=x](int arg) {
+		     return y+arg;
+		};
+	}
+
+
+/**********************************constexpr*********************************************************************/
+-If we want an expression to be evaluated at compile time, instead of runtime, we can append it with constexpr. for eg :
+	constexpr int getNumber() { 
+		return 42;
+	}
+	int main () {
+		constexpr int j = getNumber(); 
+		int arr[j];
+
+		const int  k =getNumber();
+		int arr1[k];
+	}
+- Literal types are those types that are allowed in constant expressions like void type, scalar types (float, int, references, arrays etc) and a class which has constxpr constructors.
+- Example : 
+	const int Add(int x, int y) {
+		return x+y;
+		}
+	int main() {
+		int sum = Add(3,5); // behaves as normal function, result not computed at runtime.
+		constexpr int sum1 = Add(5,6);   // result computed at compile time, very fast output.
+
+		int x = getNumber(); // not compiled at runtime
+		constexpr int sum3 = Add(x,5); //gives error as x is not constexpr
+		}
+- Rule for marking function as constexpr : should have only one line of code. (if if else statements in a function are returned in a single line using ternary operators, then it can be marked as constexpr, else not. However, C++14 onwards, these rules are a bit relaxed.
+-constexpr functions are by default inlined, they will have to be defined inside the header file itself.
+- Intitialization of a const variable can be deferred until runtime, but constexpr must be inititialized at compile time. -> all constexpr are const but not vice versa.
+- Use const keyword to indicate that the value cannot be modified, use constexpr to indicate that value must be evaluated at compile time.
+/**********************************************************************************************************************************/
+
+-std::array : The advantage of using std::array over static array is that it knows about its size. It can be used with iterators.
+-The std::array is created at compile time so it cannot grow at run time. its size is fixed.
+-It allows random access.
+-code : 
+#include <array>
+void array() {
+	std::array<int, 5> arrmine{1,2,3,4,5};  // type and size need to mentioned for compile time calculation
+	}
+
+-Iterators : its a pointer like object.
+-Its used to access the elemets of a container by their positions.
+-Iterators provide several overloaded operators : such as ++, -- , *;
+-Instance of iterator is created through begin() and end() functions which are present in all containers.
+	auto itr = arrmine.begin();
+- Range based for loop internally uses the begin and end iterators.
+	for( auto x: arrmine ) {
+		std::cout<<"x = "<<x<<"\n";
+		}
+- data() function returns a ptr to the internal array.
+- arrmine.data() can be passes to a C function. So std::Array is backward compatible with C.
+- if we need a std::array that can grow at runtime, we'll use a vector.
+
+
+
+
+
+
