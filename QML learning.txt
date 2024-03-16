@@ -1,0 +1,18 @@
+QML
+
+- QML : qt markup language / Qt  language, its a language. QML is the user interface to a C++ or python (PySide2) application.
+-Qt Quick is a framework or library over which it is built.
+- QML applications can use java script.
+- QML focuses on the user interface, dont do high end programming in it.
+-Qt Widgets : good for desktop environment, multiple OS platforms , legacy supprt
+- QML is platform independent : desktop, mobile, embedded, newly introduced in Qt
+- Advantage of Qt code : Write once build anywhere ( Migration is easy, copy working code from windows to linux, build it, executable ready for linux)
+- In QT Widgets application, the widget is actually in xml. ( Qt design)
+- According to this video tutorial, there seems to be a bug in qt, when multiple projects are open and you want to add a new class to a project, it will add to the topmost opened project, so its advisable to first close all unrelated projects.
+-For making Qt quick applications, open Qt Quick in type of new project.(The instructor used Qt Quick scroll view to create his first application.)
+Usually he will be taking a qt quick empty application.
+- We can translate our language in QT application using transalations while creating a project, however u have to build a translation file for each language.
+- A typical QML project has "QT += quick" added in library.
+- In main.cpp : there's Qt::enableHighDPIScaling written in setAttribute of QtCoreApplication for cellphones based applications.
+-Then there's QQmlApplicationEngine that loads our qml into C++ program.
+-engine.load(qml file folder) 

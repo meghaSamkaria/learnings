@@ -244,7 +244,7 @@ Utilities :
 2. Its also possible to import test results to xml format.
 
 
- ******************************************************************************************************************************************/
+ **************************************https://google.github.io/googletest/gmock_for_dummies.html****************************************************/
 
 -Mocks are objects pre-programmed with expectations, which form a specification of the calls they are expected to receive.
 -When using gMock,
@@ -258,6 +258,46 @@ a testing tool to cut your tests’ outbound dependencies and probe the interact
 -instead of having your application talk to the system API directly, wrap the API in an interface (say, Turtle) and code to that interface:
 -(Note that the destructor of Turtle must be virtual, as is the case for all classes you intend to inherit from - otherwise the destructor of the derived class will not be called when you delete an object through a base pointer, and you’ll get corrupted program states like memory leaks.)
 
+-Your program will normally use a real implementation of this interface. In tests, you can use a mock implementation instead. This allows you to easily check what drawing primitives your program is calling, with what arguments, and in which order. Tests written this way are much more robust (they won’t break because your new machine does anti-aliasing differently), easier to read and maintain (the intent of a test is expressed in the code, not in some binary images), and run much, much faster.
+
+class Turtle {
+  ...
+  virtual ~Turtle() {}
+  virtual void PenUp() = 0;
+  virtual void PenDown() = 0;
+  virtual void Forward(int distance) = 0;
+  virtual void Turn(int degrees) = 0;
+  virtual void GoTo(int x, int y) = 0;
+  virtual int GetX() const = 0;
+  virtual int GetY() const = 0;
+};
+
+How to Define It
+Using the Turtle interface as example, here are the simple steps you need to follow:
+
+-Derive a class MockTurtle from Turtle.
+-Take a virtual function of Turtle (while it’s possible to mock non-virtual methods using templates, it’s much more involved).
+-In the public: section of the child class, write MOCK_METHOD();
+-Now comes the fun part: you take the function signature, cut-and-paste it into the macro, and add two commas - one between the return type and the name, another between the name and the argument list.
+-If you’re mocking a const method, add a 4th parameter containing (const) (the parentheses are required).
+-Since you’re overriding a virtual method, we suggest adding the override keyword. For const methods the 4th parameter becomes (const, override), for non-const methods just (override). This isn’t mandatory.
+-Repeat until all virtual functions you want to mock are done. (It goes without saying that all pure virtual methods in your abstract class must be either mocked or overridden.)
+
+#include <gmock/gmock.h>  // Brings in gMock.
+
+class MockTurtle : public Turtle {
+ public:
+  ...
+  MOCK_METHOD(void, PenUp, (), (override));
+  MOCK_METHOD(void, PenDown, (), (override));
+  MOCK_METHOD(void, Forward, (int distance), (override));
+  MOCK_METHOD(void, Turn, (int degrees), (override));
+  MOCK_METHOD(void, GoTo, (int x, int y), (override));
+  MOCK_METHOD(int, GetX, (), (const, override));
+  MOCK_METHOD(int, GetY, (), (const, override));
+};
+
+-You don’t need to define these mock methods somewhere else - the MOCK_METHOD macro will generate the definitions for you. It’s that simple!
 
 
 

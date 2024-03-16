@@ -28,7 +28,7 @@ Shared pointer of both were created and the respective classes also had a public
 -This problem can be solved by a weak ptr, The other class member object should be declared as weak ptr in any one or both of the classes.
 
 Deleter :
-1. By default, the smart pointer calls delete() method on expriing. What is we have legacy code, that has free or openssl_free, etc for deallocating resources.
+1. By default, the smart pointer calls delete() method on expriing. What if we have legacy code, that has free or openssl_free, etc for deallocating resources.
 Using direct smart pointer here will cause undefined behaviour.
 2. So we'll convert this code to smart pointer using folllowing syntax :
 std::unique_ptr<int> p {(int*) malloc(sizeof(int))};
@@ -93,7 +93,7 @@ This way it wont crash :
 
 
 /************************Lambda functions**************************************************/
-1. The disadvantage of function pointers is that they cannot be inlined for optimization by compiler as they called by address, the compiler doesnt know at compile which function is invoked through that address.
+1. The disadvantage of function pointers is that they cannot be inlined for optimization by compiler as they called by address, the compiler doesnt know at compile time which function is invoked through that address.
 2. Also they are global and their state cannot be stored in a variable as their intances are shared between many functions.
 -Function pointer invoked through pointer.
 -Function pointer is dynamic in nature, can be invoked at runtime.
@@ -106,6 +106,20 @@ Also, since its part of a structure or class, it can have a state.
 -they are fast.
 
 -Lambda functions
+Using lambda functions in C++ is advisable in scenarios where you need a small piece of functionality that:
+-Is used only once or in a limited scope: If a function is only needed at a single point in your code or within a small scope, defining a lambda inline can make the code more readable by keeping the functionality close to where it's used.
+-Requires capturing variables from the surrounding scope: Lambdas can capture variables from the enclosing scope, allowing you to use variables from the surrounding context directly inside the lambda function. This can be useful in situations where passing these variables as arguments would be cumbersome or if you want to modify variables from the surrounding scope.
+-Needs to be passed as an argument to an algorithm or function: Lambdas can be passed as arguments to algorithms, functions, and other lambdas, making them convenient for use with standard library algorithms like std::for_each, std::sort, std::transform, etc. This enables you to write more expressive and concise code.
+-Requires concise and readable code: Lambdas can often lead to more concise and readable code, especially for short, simple operations like predicates for sorting or filtering collections, or for transforming data.
+-Encourages functional programming paradigms: If you're working with modern C++ codebases that embrace functional programming paradigms, lambdas can be a powerful tool for writing more expressive and concise code.
+
+However, it's important to remember that lambdas have some limitations compared to named functions:
+-They can't be forward declared or referred to from other parts of the code.
+-They may obscure the intent of the code if overused or if they become too complex.
+
+Therefore, it's important to use lambdas judiciously and consider factors like readability, maintainability, and performance when deciding whether to use a lambda or a named function.
+
+
 -syntax :
 	[](<args>)<mutable><excp specification> -> <return type>
 	{
